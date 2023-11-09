@@ -73,6 +73,8 @@ import {
   EntityNewRelicDashboardContent,
 } from '@backstage/plugin-newrelic-dashboard';
 
+import { ZnkGrafanaDashboard } from '@internal/plugin-zenika-grafana';
+
 const techdocsContent = (
   <EntityTechdocsContent>
     <TechDocsAddons>
@@ -144,7 +146,7 @@ const overviewContent = (
     </Grid>
     <Grid item md={6} xs={12}>
       <TeamAPI />
-
+      <ZnkGrafanaDashboard />
       <EntityLinksCard />
     </Grid>
 

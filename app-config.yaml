@@ -56,8 +56,8 @@ integrations:
     - host: gitlab.com
       token: ${GITLAB_TOKEN}
 
-  znk.io/grafana:
-    - host: http://localhost:3003
+  znk_grafana:
+    - host: http://grafana:3003
       token: ${GRAFANA_TOKEN_1}
 
 proxy:

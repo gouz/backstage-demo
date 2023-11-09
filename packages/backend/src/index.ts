@@ -36,6 +36,7 @@ import adr from './plugins/adr';
 import teamapi from './plugins/teamapi';
 import gitlab from './plugins/gitlab';
 import explore from './plugins/explore';
+import znkGrafana from './plugins/znkGrafana';
 
 function makeCreateEnv(config: Config) {
   const root = getRootLogger();
@@ -95,6 +96,7 @@ async function main() {
   const adrEnv = useHotMemoize(module, () => createEnv('adr'));
   const teamapiEnv = useHotMemoize(module, () => createEnv('teamapi'));
   const gitlabEnv = useHotMemoize(module, () => createEnv('gitlab'));
+  const znkGrafanaEnv = useHotMemoize(module, () => createEnv('znkgrafana'));
 
   const apiRouter = Router();
   apiRouter.use('/explore', await explore(exploreEnv));
@@ -108,6 +110,7 @@ async function main() {
   apiRouter.use('/adr', await adr(adrEnv));
   apiRouter.use('/teamapi', await teamapi(teamapiEnv));
   apiRouter.use('/gitlab', await gitlab(gitlabEnv));
+  apiRouter.use('/znkgrafana', await znkGrafana(znkGrafanaEnv));
 
   // Add backends ABOVE this line; this 404 handler is the catch-all fallback
   apiRouter.use(notFoundHandler());

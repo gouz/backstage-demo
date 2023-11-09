@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  prometheus:
+    networks:
+      - backstage-demo_devcontainer_default
+    container_name: prometheus
+    image: prom/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prom_data:/prometheus
+
+  grafana:
+    networks:
+      - backstage-demo_devcontainer_default
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - 3003:3003
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+      - GF_LOG_LEVEL=debug
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3003/
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    volumes:
+      - ./grafana:/var/lib/grafana
+      - ./grafana-config:/etc/grafana/
+    depends_on:
+      - renderer
+  renderer:
+    networks:
+      - backstage-demo_devcontainer_default
+    image: grafana/grafana-image-renderer
+    container_name: grafana-image-renderer
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+
+volumes:
+  prom_data:
+
+networks:
+  backstage-demo_devcontainer_default:
+    external: true
