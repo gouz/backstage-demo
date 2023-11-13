@@ -29,22 +29,15 @@ const bufferToBinaryString = (arrayBuffer: ArrayBuffer) =>
   String.fromCharCode(...new Uint8Array(arrayBuffer));
 
 const createImage = async (
-  dashboard: any,
+  dashboardUID: string,
   panel: number,
   host: string,
   token: string | undefined,
 ) => {
-  const currentTime = new Date().getTime();
-
   const response = await fetch(
-    `${host}/render/d-solo/${dashboard.uid}/new-dashboard?${[
+    `${host}/render/d-solo/${dashboardUID}/new-dashboard?${[
       'orgId=1',
-      `from=${currentTime - 1000 * 60 * 60 * 6}`,
-      `to=${currentTime}`,
       `panelId=${panel}`,
-      'width=1000',
-      'height=500',
-      'tz=Europe%2FParis', // TODO: give timezone as request
     ].join('&')}`,
     {
       method: 'GET',
@@ -73,27 +66,48 @@ export async function createRouter(
       return;
     }
 
-    const grafanas = config.getConfigArray('integrations.znk_grafana')[0];
+    const grafanas = config.getConfigArray('integrations.znk_grafana');
     if (grafanas) {
-      // const hostConfig = grafanas.get('host');
-      const tokenConfig = grafanas.get('token')?.toString();
+      const grafanaTokens: Record<string, string> = {};
+      [...grafanas].forEach(grafanasConfig => {
+        const hostConfig: string = grafanasConfig.get('host')?.toString() || '';
+        const tokenConfig: string =
+          grafanasConfig.get('token')?.toString() || '';
+        if (hostConfig !== '') grafanaTokens[hostConfig] = tokenConfig;
+      });
 
       const [host, dashboard] = configuration.split('@');
 
-      const dashboardObject = await getDashboardModel(
-        dashboard,
-        host,
-        tokenConfig,
-      );
-      const snapshots: string[] = [];
-      await Promise.all(
-        [...dashboardObject.panels].map(async panel => {
-          snapshots.push(
-            await createImage(dashboardObject, panel.id, host, tokenConfig),
+      if (grafanaTokens[host]) {
+        const tokenConfig: string = grafanaTokens[host];
+        const dashboardObject = await getDashboardModel(
+          dashboard,
+          host,
+          tokenConfig,
+        );
+        if (dashboardObject) {
+          const snapshots: string[] = [];
+          await Promise.all(
+            [...dashboardObject.panels].map(async panel => {
+              snapshots.push(
+                await createImage(
+                  dashboardObject.uid,
+                  panel.id,
+                  host,
+                  tokenConfig,
+                ),
+              );
+            }),
           );
-        }),
-      );
-      res.json({ snapshots });
+          res.json({ snapshots });
+        } else {
+          res.statusCode = 404;
+          res.json({ message: 'Dashboard not found' });
+        }
+      } else {
+        res.statusCode = 404;
+        res.json({ message: 'Host not found' });
+      }
     }
   });
 

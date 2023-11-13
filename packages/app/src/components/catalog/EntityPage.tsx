@@ -73,7 +73,10 @@ import {
   EntityNewRelicDashboardContent,
 } from '@backstage/plugin-newrelic-dashboard';
 
-import { ZnkGrafanaDashboard } from '@internal/plugin-zenika-grafana';
+import {
+  ZnkGrafanaDashboard,
+  isZnkGrafanaAvailable,
+} from '@internal/plugin-zenika-grafana';
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -146,7 +149,6 @@ const overviewContent = (
     </Grid>
     <Grid item md={6} xs={12}>
       <TeamAPI />
-      <ZnkGrafanaDashboard />
       <EntityLinksCard />
     </Grid>
 
@@ -210,6 +212,14 @@ const serviceEntityPage = (
 
     <EntityLayout.Route if={isAdrAvailable} path="/adrs" title="ADRs">
       <EntityAdrContent />
+    </EntityLayout.Route>
+
+    <EntityLayout.Route
+      if={isZnkGrafanaAvailable}
+      path="/status"
+      title="Status"
+    >
+      <ZnkGrafanaDashboard />
     </EntityLayout.Route>
   </EntityLayout>
 );

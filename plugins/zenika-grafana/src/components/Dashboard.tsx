@@ -15,10 +15,11 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { InfoCard } from '@backstage/core-components';
+import { InfoCard, Progress, WarningPanel } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
+import { getZnkGrafanaConfiguration } from '../plugin';
 
 const useStyles = makeStyles(theme => ({
   infoCard: {
@@ -29,33 +30,38 @@ const useStyles = makeStyles(theme => ({
 export const Dashboard = () => {
   const classes = useStyles();
   const { entity } = useEntity();
-  const [dash, setDash] = useState(<></>);
+  const [dash, setDash] = useState(<Progress />);
   const config = useApi(configApiRef);
 
   useEffect(() => {
-    let conf = '';
-    if (entity.metadata.annotations)
-      conf = entity.metadata.annotations['znk.io/grafana'];
     fetch(
       `${config.getString(
         'backend.baseUrl',
       )}/api/znkGrafana/snap?${new URLSearchParams({
-        conf,
+        conf: getZnkGrafanaConfiguration(entity),
       })}`,
     )
       .then(response => response.json())
       .then(json => {
-        setDash(
-          <>
-            {json.snapshots.map((i: string, c: number) => (
-              <img
-                key={`snap${c}`}
-                src={`data:image/png;base64,${i}`}
-                alt={`snap${c}`}
-              />
-            ))}
-          </>,
-        );
+        if (json.snapshots)
+          setDash(
+            <>
+              {json.snapshots.map((i: string, c: number) => (
+                <img
+                  key={`snap${c}`}
+                  src={`data:image/png;base64,${i}`}
+                  alt={`snap${c}`}
+                />
+              ))}
+            </>,
+          );
+        else
+          setDash(
+            <WarningPanel
+              title="Failed to fetch snapshots"
+              message={json.message}
+            />,
+          );
       });
   }, [config, entity]);
 

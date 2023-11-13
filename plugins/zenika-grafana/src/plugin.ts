@@ -17,17 +17,26 @@
 import {
   createComponentExtension,
   createPlugin,
-} from "@backstage/core-plugin-api";
+} from '@backstage/core-plugin-api';
+import { Entity } from '@backstage/catalog-model';
 
 export const znkGrafanaPlugin = createPlugin({
-  id: "znk-grafana",
+  id: 'znk-grafana',
 });
 
 export const ZnkGrafanaDashboard = znkGrafanaPlugin.provide(
   createComponentExtension({
-    name: "ZnkGrafanaDashboard",
+    name: 'ZnkGrafanaDashboard',
     component: {
-      lazy: () => import("./components/Dashboard").then((c) => c.Dashboard),
+      lazy: () => import('./components/Dashboard').then(c => c.Dashboard),
     },
-  })
+  }),
 );
+
+export const ZNK_GRANAFA_LOCATION = 'znk.io/grafana';
+
+export const getZnkGrafanaConfiguration = (entity: Entity) =>
+  entity.metadata.annotations?.[ZNK_GRANAFA_LOCATION]?.trim() || '';
+
+export const isZnkGrafanaAvailable = (entity: Entity) =>
+  Boolean(getZnkGrafanaConfiguration(entity));
