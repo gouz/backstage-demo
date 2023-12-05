@@ -1,4 +1,4 @@
-import { createRouter } from '@internal/plugin-zenika-grafana-backend';
+import { createRouter } from '@zenika/plugin-backstage-grafana-backend';
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
 

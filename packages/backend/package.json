@@ -38,7 +38,7 @@
     "@backstage/plugin-techdocs-backend": "^1.8.0",
     "@immobiliarelabs/backstage-plugin-gitlab-backend": "^6.0.0",
     "@internal/plugin-teamapi-backend": "^0.1.0",
-    "@internal/plugin-zenika-grafana-backend": "^0.1.0",
+    "@zenika/plugin-backstage-grafana-backend": "https://github.com/Zenika/backstage-grafana-backend.git",
     "app": "link:../app",
     "better-sqlite3": "^8.0.0",
     "dockerode": "^3.3.1",

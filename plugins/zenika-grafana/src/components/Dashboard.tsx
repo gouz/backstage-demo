@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { InfoCard, Progress, WarningPanel } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
 import { getZnkGrafanaConfiguration } from '../plugin';
+import useAsync from 'react-use/lib/useAsync';
 
 const useStyles = makeStyles(theme => ({
   infoCard: {
@@ -30,44 +31,39 @@ const useStyles = makeStyles(theme => ({
 export const Dashboard = () => {
   const classes = useStyles();
   const { entity } = useEntity();
-  const [dash, setDash] = useState(<Progress />);
   const config = useApi(configApiRef);
-
-  useEffect(() => {
-    fetch(
+  const { value, loading, error } = useAsync(async () => {
+    const response = await fetch(
       `${config.getString(
         'backend.baseUrl',
       )}/api/znkGrafana/snap?${new URLSearchParams({
         conf: getZnkGrafanaConfiguration(entity),
       })}`,
-    )
-      .then(response => response.json())
-      .then(json => {
-        if (json.snapshots)
-          setDash(
-            <>
-              {json.snapshots.map((i: string, c: number) => (
-                <img
-                  key={`snap${c}`}
-                  src={`data:image/png;base64,${i}`}
-                  alt={`snap${c}`}
-                />
-              ))}
-            </>,
-          );
-        else
-          setDash(
-            <WarningPanel
-              title="Failed to fetch snapshots"
-              message={json.message}
-            />,
-          );
-      });
+    );
+    const json = await response.json();
+    return json;
   }, [config, entity]);
 
   return (
     <InfoCard title="Grafana" className={classes.infoCard}>
-      {dash}
+      {loading && <Progress />}
+      {!loading && error && (
+        <WarningPanel
+          title="Failed to fetch snapshots"
+          message={error?.message}
+        />
+      )}
+      {!loading && !error && value && (
+        <>
+          {value.snapshots.map((i: string, c: number) => (
+            <img
+              key={`snap${c}`}
+              src={`data:image/png;base64,${i}`}
+              alt={`snap${c}`}
+            />
+          ))}
+        </>
+      )}
     </InfoCard>
   );
 };
